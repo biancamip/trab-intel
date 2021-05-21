@@ -40,7 +40,7 @@ colPos5         db  42
 colPos6         db  45
 colPos7         db  48
 
-clearLine       db  '                                           ', 0
+clearLine       db  '                                                           ', 0
 menuLine1       db  '1-7 - movimentacao de pecas', 0
 menuLine2       db  'Z   - recomecar o jogo', 0
 menuLine3       db  'R   - ler arquivo de jogo', 0
@@ -51,25 +51,28 @@ rChar          BYTE    "r",0
 gChar          BYTE    "g",0
 sChar          BYTE    "s",0
 nChar          BYTE    "n",0
+kChar          BYTE    "k",0
 
 msgLinePos         db       21
 msgReset        db      'O jogo foi resetado                  ', 0
-msgFileInput    db      'Entre com o nome do arquivo:       ', 0
+msgFileInput    db      'Entre com o nome do arquivo:', 0
 
-msgInput1    db      'Voce digitou o numero 1      ', 0
-msgInput2    db      'Voce digitou o numero 2      ', 0
-msgInput3    db      'Voce digitou o numero 3      ', 0
-msgInput4    db      'Voce digitou o numero 4      ', 0
-msgInput5    db      'Voce digitou o numero 5      ', 0
-msgInput6    db      'Voce digitou o numero 6      ', 0
-msgInput7    db      'Voce digitou o numero 7      ', 0
-unrecognizedCommand    db      'Comando nao reconhecido      ', 0
+msgInput1    db      'Voce digitou o numero 1                  ', 0
+msgInput2    db      'Voce digitou o numero 2                  ', 0
+msgInput3    db      'Voce digitou o numero 3                  ', 0
+msgInput4    db      'Voce digitou o numero 4                  ', 0
+msgInput5    db      'Voce digitou o numero 5                  ', 0
+msgInput6    db      'Voce digitou o numero 6                  ', 0
+msgInput7    db      'Voce digitou o numero 7                  ', 0
+unrecognizedCommand    db      'Comando nao reconhecido                  ', 0
+notImplementedError    db      'Erro: funcionalidade nao implementada                  ', 0
 
 ;--------------------------------------------------------------------
 
 ;   ASCII VALUES
 ;   A = 41H (65);    V = 56H (86);    x = 78H (120);    . = 2EH (46)
 gameState       db      7 dup(?)
+isValidMovement db 0
 
 	.code
 	.startup
@@ -88,7 +91,11 @@ gameState       db      7 dup(?)
     nextKey:
     call    setCursorInput
     call    getKey
-    ; check if 1-7 here
+    
+    cmp     al, 31H
+    je      tryMove1
+    cmp     al, 32H
+    je      tryMove2
 
     or      al, 20h    ; to lowercase
     cmp     al, zChar
@@ -98,11 +105,9 @@ gameState       db      7 dup(?)
     cmp     al, gChar
     je      recordingFile
 
-    cmp     al, 31H
-    je      tryMove1
-    cmp     al, 32H
-    je      tryMove2
-
+    cmp     al, kChar
+    je      closeGame
+    
     mov     dh, msgLinePos
     mov     dl,0
     call    setCursor
@@ -111,15 +116,21 @@ gameState       db      7 dup(?)
     jmp     nextKey
 
     tryMove1:
-    mov     dh, 13
+    mov     dh, msgLinePos
     mov     dl, 0
     call    setCursor
     lea     bx, msgInput1
     call    printf_s
+
+    ; chamo funcao que verifica se é movimento válido
+    ;   sim? executo movimento com outra funcao
+    ;   nao? mostro "movimento invalido"
+    ; aguardo outra tecla
+
     jmp     nextKey
 
     tryMove2:
-    mov     dh, 13
+    mov     dh, msgLinePos
     mov     dl, 0
     call    setCursor
     lea     bx, msgInput2
@@ -127,38 +138,29 @@ gameState       db      7 dup(?)
     jmp     nextKey
 
     readingFile:
-        call    clearMenu
-
-        mov     dh, msgLinePos
-        mov     dl, 0
-        call    setCursor
-        lea     bx,msgFileInput
-        call    printf_s
-        
-        call    setCursorInput
         ;   ler nome do arquivo
         ;   tentar abrir
-        ;       se abrir -> reproduzir jogadas de alguma maneira
+        ;       se abrir -> reproduzir jogadas
         ;       se nao -> erro
-        call    getKey
-
-    recordingFile:
-        call    clearMenu
-
         mov     dh, msgLinePos
         mov     dl, 0
         call    setCursor
-        lea     bx,msgFileInput
+        lea     bx, notImplementedError
         call    printf_s
-        
-        call    setCursorInput
+        jmp nextKey
+
+    recordingFile:
         ;   ler nome do arquivo
         ;   tentar abrir:
         ;       se existe -> escrever por cima
         ;       se nao -> criar
-        ;   gravar jogadas de alguma maneira
-        call    getKey
-
+        ;   gravar jogadas
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, notImplementedError
+        call    printf_s
+        jmp nextKey
 
 closeGame:
     call     clearScreen
@@ -175,8 +177,7 @@ zInput:
 
 ;--------------------------------------------------------------------
 resetGame proc near
-; Mov        [vet + 2],'A'
-; aqui eu coloco os valores padrao no array e printo na tela com uma  funcao
+; coloco os valores padrao no array e printo na tela
 	lea		di,gameState
 	mov		ax,41H
 	stosw
