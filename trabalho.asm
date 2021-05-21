@@ -53,8 +53,17 @@ sChar          BYTE    "s",0
 nChar          BYTE    "n",0
 
 msgLinePos         db       21
-msgReset        db      'O jogo foi resetado         ', 0
-msgFileInput    db      'Entre com o nome do arquivo:', 0
+msgReset        db      'O jogo foi resetado                  ', 0
+msgFileInput    db      'Entre com o nome do arquivo:       ', 0
+
+msgInput1    db      'Voce digitou o numero 1      ', 0
+msgInput2    db      'Voce digitou o numero 2      ', 0
+msgInput3    db      'Voce digitou o numero 3      ', 0
+msgInput4    db      'Voce digitou o numero 4      ', 0
+msgInput5    db      'Voce digitou o numero 5      ', 0
+msgInput6    db      'Voce digitou o numero 6      ', 0
+msgInput7    db      'Voce digitou o numero 7      ', 0
+unrecognizedCommand    db      'Comando nao reconhecido      ', 0
 
 ;--------------------------------------------------------------------
 
@@ -75,37 +84,81 @@ gameState       db      7 dup(?)
     reset:
     call    resetGame
     call    displayMenu
-    call    setCursorInput
 
+    nextKey:
+    call    setCursorInput
     call    getKey
     ; check if 1-7 here
 
-    or       al, 20h    ; to lowercase
+    or      al, 20h    ; to lowercase
+    cmp     al, zChar
+    je      zInput
+    cmp     al, rChar
+    je      readingFile
+    cmp     al, gChar
+    je      recordingFile
 
-    cmp      al, zChar
-    je       zInput
-    cmp      al, rChar
-    je       rInput
-    cmp      al, gChar
-    je       gInput
+    cmp     al, 31H
+    je      tryMove1
+    cmp     al, 32H
+    je      tryMove2
 
-    reproducing:
-    call setCursorInput
-    ;   ler nome do arquivo
-    ;   tentar abrir
-    ;       se abrir -> reproduzir jogadas de alguma maneira
-    ;       se não -> erro
-    call getKey
+    mov     dh, msgLinePos
+    mov     dl,0
+    call    setCursor
+    lea     bx, unrecognizedCommand
+    call    printf_s
+    jmp     nextKey
 
+    tryMove1:
+    mov     dh, 13
+    mov     dl, 0
+    call    setCursor
+    lea     bx, msgInput1
+    call    printf_s
+    jmp     nextKey
 
-    recording:
-    call setCursorInput
-    ;   ler nome do arquivo
-    ;   tentar abrir:
-    ;       se existe -> escrever por cima
-    ;       se não -> criar
-    ;   gravar jogadas de alguma maneira
-    call getKey
+    tryMove2:
+    mov     dh, 13
+    mov     dl, 0
+    call    setCursor
+    lea     bx, msgInput2
+    call    printf_s
+    jmp     nextKey
+
+    readingFile:
+        call    clearMenu
+
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx,msgFileInput
+        call    printf_s
+        
+        call    setCursorInput
+        ;   ler nome do arquivo
+        ;   tentar abrir
+        ;       se abrir -> reproduzir jogadas de alguma maneira
+        ;       se nao -> erro
+        call    getKey
+
+    recordingFile:
+        call    clearMenu
+
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx,msgFileInput
+        call    printf_s
+        
+        call    setCursorInput
+        ;   ler nome do arquivo
+        ;   tentar abrir:
+        ;       se existe -> escrever por cima
+        ;       se nao -> criar
+        ;   gravar jogadas de alguma maneira
+        call    getKey
+
 
 closeGame:
     call     clearScreen
@@ -119,30 +172,6 @@ zInput:
     lea      bx,msgReset
     call     printf_s
     jmp      reset
-
-rInput:
-    call    clearMenu
-
-    mov     dh, msgLinePos
-    mov     dl, 0
-    call    setCursor
-    lea     bx,msgFileInput
-    call    printf_s
-    
-    call    setCursorInput
-    jmp     reproducing
-
-gInput:
-    call    clearMenu
-    
-    mov     dh, msgLinePos
-    mov     dl, 0
-    call    setCursor
-    lea     bx,msgFileInput
-    call    printf_s
-    
-    call    setCursorInput
-    jmp     recording
 
 ;--------------------------------------------------------------------
 resetGame proc near
@@ -164,18 +193,12 @@ resetGame proc near
     mov		ax,56H
 	stosw
 
-
-    ; mov     dh,9
-    ; mov     dl, gameColShift
-    ; call    setCursor
-    ; lea     bx,gameInitState
-    ; call    printf_s
-
+    call updateGameDisplay
     ret
 resetGame         endp
 
 ;--------------------------------------------------------------------
-updateGame proc near
+updateGameDisplay proc near
     mov     dh, 9
     mov     dl, colPos1
     call    setCursor
@@ -218,7 +241,7 @@ updateGame proc near
     lea     bx, gameState[12]
     call    printf_s
     ret
-updateGame endp
+updateGameDisplay endp
 
 ;--------------------------------------------------------------------
 setCursorInput proc near
