@@ -49,8 +49,6 @@ menuLine4       db  'G   - gravar arquivo de jogo', 0
 zChar          BYTE    "z",0
 rChar          BYTE    "r",0
 gChar          BYTE    "g",0
-sChar          BYTE    "s",0
-nChar          BYTE    "n",0
 kChar          BYTE    "k",0
 
 msgLinePos         db       21
@@ -269,8 +267,6 @@ failure db 0
         lea     bx, notImplementedError
         call    printf_s
         jmp     nextKey
-
-
 
 ganhou:
 perdeu:
