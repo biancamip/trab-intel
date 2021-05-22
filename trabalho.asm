@@ -57,15 +57,16 @@ msgLinePos         db       21
 msgReset        db      'O jogo foi resetado                  ', 0
 msgFileInput    db      'Entre com o nome do arquivo:', 0
 
-msgInput1    db      'Voce digitou o numero 1                  ', 0
-msgInput2    db      'Voce digitou o numero 2                  ', 0
-msgInput3    db      'Voce digitou o numero 3                  ', 0
-msgInput4    db      'Voce digitou o numero 4                  ', 0
-msgInput5    db      'Voce digitou o numero 5                  ', 0
-msgInput6    db      'Voce digitou o numero 6                  ', 0
-msgInput7    db      'Voce digitou o numero 7                  ', 0
-unrecognizedCommand    db      'Comando nao reconhecido                  ', 0
-notImplementedError    db      'Erro: funcionalidade nao implementada                  ', 0
+msgInput1    db      'Voce digitou o numero 1 (movimento valido)   ', 0
+msgInput2    db      'Voce digitou o numero 2 (movimento valido)   ', 0
+msgInput3    db      'Voce digitou o numero 3 (movimento valido)   ', 0
+msgInput4    db      'Voce digitou o numero 4 (movimento valido)   ', 0
+msgInput5    db      'Voce digitou o numero 5 (movimento valido)   ', 0
+msgInput6    db      'Voce digitou o numero 6 (movimento valido)   ', 0
+msgInput7    db      'Voce digitou o numero 7 (movimento valido)   ', 0
+unrecognizedCommand    db      'Comando nao reconhecido                       ', 0
+invalidMovement        db      'Movimento invalido                            ', 0
+notImplementedError    db      'Erro: funcionalidade nao implementada                     ', 0
 
 ;--------------------------------------------------------------------
 
@@ -73,6 +74,11 @@ notImplementedError    db      'Erro: funcionalidade nao implementada           
 ;   A = 41H (65);    V = 56H (86);    x = 78H (120);    . = 2EH (46)
 gameState       db      7 dup(?)
 isValidMovement db 0
+execute         db 1
+
+; quando ganhar, seto um desses
+victory db 0
+failure db 0
 
 	.code
 	.startup
@@ -89,13 +95,24 @@ isValidMovement db 0
     call    displayMenu
 
     nextKey:
+    call    updateGameDisplay
     call    setCursorInput
     call    getKey
     
     cmp     al, 31H
-    je      tryMove1
+    je      input1
     cmp     al, 32H
-    je      tryMove2
+    je      input2
+    cmp     al, 33H
+    je      input3
+    cmp     al, 34H
+    je      input4
+    cmp     al, 35H
+    je      input5
+    cmp     al, 36H
+    je      input6
+    cmp     al, 37H
+    je      input7
 
     or      al, 20h    ; to lowercase
     cmp     al, zChar
@@ -105,8 +122,8 @@ isValidMovement db 0
     cmp     al, gChar
     je      recordingFile
 
-    cmp     al, kChar
-    je      closeGame
+    ; cmp     al, kChar
+    ; je      closeGame
     
     mov     dh, msgLinePos
     mov     dl,0
@@ -115,27 +132,118 @@ isValidMovement db 0
     call    printf_s
     jmp     nextKey
 
-    tryMove1:
-    mov     dh, msgLinePos
-    mov     dl, 0
-    call    setCursor
-    lea     bx, msgInput1
-    call    printf_s
+    input1:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, msgInput1
+        call    printf_s
 
-    ; chamo funcao que verifica se é movimento válido
-    ;   sim? executo movimento com outra funcao
-    ;   nao? mostro "movimento invalido"
-    ; aguardo outra tecla
+        call    tryMove1
+        ; checar se venceu aqui
+        cmp     victory, 1
+        je      ganhou
+        cmp     failure, 1
+        je      perdeu
 
-    jmp     nextKey
+        jmp     nextKey
 
-    tryMove2:
-    mov     dh, msgLinePos
-    mov     dl, 0
-    call    setCursor
-    lea     bx, msgInput2
-    call    printf_s
-    jmp     nextKey
+    input2:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, msgInput2
+        call    printf_s
+
+        call    tryMove2
+        ; checar se venceu aqui
+        cmp     victory, 1
+        je      ganhou
+        cmp     failure, 1
+        je      perdeu
+
+        jmp     nextKey
+
+    input3:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, msgInput3
+        call    printf_s
+
+        call    tryMove3
+        ; checar se venceu aqui
+        cmp     victory, 1
+        je      ganhou
+        cmp     failure, 1
+        je      perdeu
+
+        jmp     nextKey
+
+    input4:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, msgInput4
+        call    printf_s
+
+        call    tryMove4
+        ; checar se venceu aqui
+        cmp     victory, 1
+        je      ganhou
+        cmp     failure, 1
+        je      perdeu
+
+        jmp     nextKey
+
+    input5:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, msgInput5
+        call    printf_s
+
+        call    tryMove5
+        ; checar se venceu aqui
+
+        cmp     victory, 1
+        je      ganhou
+        cmp     failure, 1
+        je      perdeu
+
+        jmp     nextKey
+
+    input6:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, msgInput6
+        call    printf_s
+
+        call    tryMove6
+        ; checar se venceu aqui
+        cmp     victory, 1
+        je      ganhou
+        cmp     failure, 1
+        je      perdeu
+
+        jmp     nextKey
+
+    input7:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, msgInput7
+        call    printf_s
+
+        call    tryMove7
+        ; checar se venceu aqui
+        cmp     victory, 1
+        je      ganhou
+        cmp     failure, 1
+        je      perdeu
+
+        jmp     nextKey
 
     readingFile:
         ;   ler nome do arquivo
@@ -147,7 +255,7 @@ isValidMovement db 0
         call    setCursor
         lea     bx, notImplementedError
         call    printf_s
-        jmp nextKey
+        jmp     nextKey
 
     recordingFile:
         ;   ler nome do arquivo
@@ -160,8 +268,12 @@ isValidMovement db 0
         call    setCursor
         lea     bx, notImplementedError
         call    printf_s
-        jmp nextKey
+        jmp     nextKey
 
+
+
+ganhou:
+perdeu:
 closeGame:
     call     clearScreen
 
@@ -174,6 +286,414 @@ zInput:
     lea      bx,msgReset
     call     printf_s
     jmp      reset
+
+;--------------------------------------------------------------------
+; As funcoes tryMoveX tentam executar movimento na posicao X
+;   Se o movimento for valido e execute == 1, ele é executado
+;   Se o movimento nao for valido, uma mensagem é mostrada
+; As funcoes retornam a flag valido/invalido em isValidMovement
+;--------------------------------------------------------------------
+tryMove1 proc near
+    cmp     gameState[0], 2EH   ; check if .
+    je      invalid1
+
+    cmp     gameState[0], 56H   ; check if V
+    je      invalid1
+
+    ; daqui em diante sei que gamestate[0]= A
+    cmp     gameState[2], 41H   ; check if next is A
+    je      invalid1
+    
+    cmp     gameState[2], 2EH   ; check if next is empty
+    jne     continueChecks1
+
+    cmp     execute, 1
+    jne     valid1
+    mov     gameState[0], 2EH
+    mov     gameState[2], 41H
+    jmp     valid1
+
+    continueChecks1:
+    ; daqui em diante sei que o gamestate[2]= V
+    cmp     gameState[4], 2EH   ; check if empty space to jump
+    jne     invalid1
+
+    cmp     execute, 1
+    jne     valid1
+    mov     gameState[0], 2EH
+    mov     gameState[4], 41H
+    jmp     valid1
+
+    invalid1:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, invalidMovement
+        call    printf_s
+        mov     isValidMovement, 0
+        ret
+
+    valid1:
+        mov     isValidMovement, 1
+        ret
+tryMove1 endp
+
+;--------------------------------------------------------------------
+tryMove2 proc near
+    cmp     gameState[2], 2EH   ; check if .
+    je      invalid2
+
+    cmp     gameState[0], 41H   ; check if A
+    je      isA2
+
+    ; daqui em diante sei que gamestate[2]= V
+    cmp     gameState[0], 2EH   ; check if previous is empty
+    jne     invalid2
+
+    cmp     execute, 1
+    jne     valid2
+    mov     gameState[2], 2EH
+    mov     gameState[0], 56H
+    jmp     valid2
+
+    isA2:
+    cmp     gameState[4], 2EH
+    jne     invalid2
+
+    cmp     execute, 1
+    jne     valid2
+    mov     gameState[4], 41H
+    mov     gameState[2], 2EH
+    jmp     valid2
+
+    invalid2:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, invalidMovement
+        call    printf_s
+        mov     isValidMovement, 0
+        ret
+
+    valid2:
+        mov     isValidMovement, 1
+        ret
+tryMove2 endp
+
+;--------------------------------------------------------------------
+tryMove3 proc near
+    cmp     gameState[4], 2EH   ; check if .
+    je      invalid3
+
+    cmp     gameState[4], 41H   ; check if A
+    je      isA3
+
+    ; daqui em diante sei que gamestate[4]= V
+
+    cmp     gameState[2], 56H   ; check if previous is V
+    je      invalid3
+
+    cmp     gameState[2], 2EH   ; check if previous is empty
+    jne     continueChecksV3
+
+    cmp     execute, 1
+    jne     valid3
+    mov     gameState[4], 2EH
+    mov     gameState[2], 56H
+    jmp     valid3
+
+    continueChecksV3:
+    ; daqui em diante sei que o gamestate[02]= A
+    cmp     gameState[0], 2EH   ; check if empty space to jump
+    jne     invalid3
+
+    cmp     execute, 1
+    jne     valid3
+    mov     gameState[4], 2EH
+    mov     gameState[0], 56H
+    jmp     valid3
+
+    isA3:
+    cmp     gameState[6], 41H ; check if next is A
+    je      invalid3
+
+    cmp     gameState[6], 2EH  ; check if next is empty
+    jne     continueChecksA3
+
+    cmp     execute, 1
+    jne     valid3
+    mov     gameState[6], 41H
+    mov     gameState[4], 2EH
+    jmp     valid3
+
+    ; daqui em diante sei que gameState[8] = V
+    continueChecksA3:
+    cmp     gameState[8], 2EH  ; check if empty space to jump  
+    jne     invalid3
+
+    cmp     execute, 1
+    jne     valid3
+    mov     gameState[8], 41H
+    mov     gameState[4], 2EH
+    jmp     valid3
+
+    invalid3:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, invalidMovement
+        call    printf_s
+        mov     isValidMovement, 0
+        ret
+
+    valid3:
+        mov     isValidMovement, 1
+        ret
+tryMove3 endp
+
+;--------------------------------------------------------------------
+tryMove4 proc near
+    cmp     gameState[6], 2EH   ; check if .
+    je      invalid4
+
+    cmp     gameState[6], 41H   ; check if A
+    je      isA4
+
+    ; daqui em diante sei que gamestate[6]= V
+
+    cmp     gameState[4], 56H   ; check if previous is V
+    je      invalid4
+
+    cmp     gameState[4], 2EH   ; check if previous is empty
+    jne     continueChecksV4
+
+    cmp     execute, 1
+    jne     valid4
+    mov     gameState[6], 2EH
+    mov     gameState[4], 56H
+    jmp     valid4
+
+    continueChecksV4:
+    ; daqui em diante sei que o gamestate[04]= A
+    cmp     gameState[2], 2EH   ; check if empty space to jump
+    jne     invalid4
+
+    cmp     execute, 1
+    jne     valid4
+    mov     gameState[6], 2EH
+    mov     gameState[2], 56H
+    jmp     valid4
+
+    isA4:
+    cmp     gameState[8], 41H ; check if next is A
+    je      invalid4
+
+    cmp     gameState[8], 2EH  ; check if next is empty
+    jne     continueChecksA4
+
+    cmp     execute, 1
+    jne     valid4
+    mov     gameState[8], 41H
+    mov     gameState[6], 2EH
+    jmp     valid4
+
+    ; daqui em diante sei que gameState[8] = V
+    continueChecksA4:
+    cmp     gameState[10], 2EH  ; check if empty space to jump  
+    jne     invalid4
+
+    cmp     execute, 1
+    jne     valid4
+    mov     gameState[10], 41H
+    mov     gameState[6], 2EH
+    jmp     valid4
+
+    invalid4:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, invalidMovement
+        call    printf_s
+        mov     isValidMovement, 0
+        ret
+
+    valid4:
+        mov     isValidMovement, 1
+        ret
+tryMove4 endp
+
+;--------------------------------------------------------------------
+tryMove5 proc near
+    cmp     gameState[8], 2EH   ; check if .
+    je      invalid5
+
+    cmp     gameState[8], 41H   ; check if A
+    je      isA5
+
+    ; daqui em diante sei que gamestate[8]= V
+
+    cmp     gameState[6], 56H   ; check if previous is V
+    je      invalid5
+
+    cmp     gameState[6], 2EH   ; check if previous is empty
+    jne     continueChecksV5
+
+    cmp     execute, 1
+    jne     valid5
+    mov     gameState[8], 2EH
+    mov     gameState[6], 56H
+    jmp     valid5
+
+    continueChecksV5:
+    ; daqui em diante sei que o gamestate[06]= A
+    cmp     gameState[4], 2EH   ; check if empty space to jump
+    jne     invalid5
+
+    cmp     execute, 1
+    jne     valid5
+    mov     gameState[8], 2EH
+    mov     gameState[4], 56H
+    jmp     valid5
+
+    isA5:
+    cmp     gameState[10], 41H ; check if next is A
+    je      invalid5
+
+    cmp     gameState[10], 2EH  ; check if next is empty
+    jne     continueChecksA5
+
+    cmp     execute, 1
+    jne     valid5
+    mov     gameState[10], 41H
+    mov     gameState[8], 2EH
+    jmp     valid5
+
+    ; daqui em diante sei que gameState[10] = V
+    continueChecksA5:
+    cmp     gameState[12], 2EH  ; check if empty space to jump  
+    jne     invalid5
+
+    cmp     execute, 1
+    jne     valid5
+    mov     gameState[12], 41H
+    mov     gameState[8], 2EH
+    jmp     valid5
+
+    invalid5:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, invalidMovement
+        call    printf_s
+        mov     isValidMovement, 0
+        ret
+
+    valid5:
+        mov     isValidMovement, 1
+        ret
+tryMove5 endp
+
+;--------------------------------------------------------------------
+tryMove6 proc near
+    cmp     gameState[10], 2EH   ; check if .
+    je      invalid6
+
+    cmp     gameState[10], 41H   ; check if A
+    je      isA6
+
+    ; daqui em diante sei que gamestate[12]= V
+    cmp     gameState[8], 56H   ; check if previous is V
+    je      invalid6
+    
+    cmp     gameState[8], 2EH   ; check if previous is empty
+    jne     continueChecks6
+
+    cmp     execute, 1
+    jne     valid6
+    mov     gameState[10], 2EH
+    mov     gameState[8], 56H
+    jmp     valid6
+
+    continueChecks6:
+    ; daqui em diante sei que o gamestate[10]= A
+    cmp     gameState[6], 2EH   ; check if empty space to jump
+    jne     invalid6
+
+    cmp     execute, 1
+    jne     valid6
+    mov     gameState[10], 2EH
+    mov     gameState[6], 56H
+    jmp     valid6
+
+    isA6:
+    cmp     gameState[12], 2EH
+    jne     invalid6
+    cmp     execute, 1
+    jne     valid6
+    mov     gameState[12], 41H
+    mov     gameState[10], 2EH
+    jmp     valid6
+
+    invalid6:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, invalidMovement
+        call    printf_s
+        mov     isValidMovement, 0
+        ret
+
+    valid6:
+        mov     isValidMovement, 1
+        ret
+tryMove6 endp
+
+;--------------------------------------------------------------------
+tryMove7 proc near
+    cmp     gameState[12], 2EH   ; check if .
+    je      invalid7
+
+    cmp     gameState[12], 41H   ; check if A
+    je      invalid7
+
+    ; daqui em diante sei que gamestate[14]= V
+    cmp     gameState[10], 56H   ; check if previous is V
+    je      invalid7
+    
+    cmp     gameState[10], 2EH   ; check if previous is empty
+    jne     continueChecks2
+
+    cmp     execute, 1
+    jne     valid7
+    mov     gameState[12], 2EH
+    mov     gameState[10], 56H
+    jmp     valid7
+
+    continueChecks2:
+    ; daqui em diante sei que o gamestate[12]= A
+    cmp     gameState[8], 2EH   ; check if empty space to jump
+    jne     invalid7
+
+    cmp     execute, 1
+    jne     valid7
+    mov     gameState[12], 2EH
+    mov     gameState[8], 56H
+    jmp     valid7
+
+    invalid7:
+        mov     dh, msgLinePos
+        mov     dl, 0
+        call    setCursor
+        lea     bx, invalidMovement
+        call    printf_s
+        mov     isValidMovement, 0
+        ret
+
+    valid7:
+        mov     isValidMovement, 1
+        ret
+
+tryMove7 endp
 
 ;--------------------------------------------------------------------
 resetGame proc near
@@ -194,12 +714,18 @@ resetGame proc near
     mov		ax,56H
 	stosw
 
-    call updateGameDisplay
+    call    updateGameDisplay
     ret
-resetGame         endp
+resetGame endp
 
 ;--------------------------------------------------------------------
 updateGameDisplay proc near
+    mov     dh, 9
+    mov     dl, gameColShift 
+    call    setCursor
+    lea     bx, gameEmptyLines
+    call    printf_s
+
     mov     dh, 9
     mov     dl, colPos1
     call    setCursor
